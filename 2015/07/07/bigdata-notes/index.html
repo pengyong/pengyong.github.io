@@ -1,0 +1,644 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>&lt;大数据日知录&gt;读书笔记 | PengYong&#39;s home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Peng Yong">
+    
+
+    
+    <meta name="description" content="数据复制与一致性基本原则与设计理念CAPC: （consistency）强一致性A: （Availability）可用性P: （Partition Tolerance）分区容忍性
+ACIDA:(Atomicity)原子性C:(Consitency)一致性I:(Isolation)事物独立性D:(Durability)持久性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="<大数据日知录>读书笔记">
+<meta property="og:url" content="http://pengyong.github.io/2015/07/07/bigdata-notes/index.html">
+<meta property="og:site_name" content="PengYong's home">
+<meta property="og:description" content="数据复制与一致性基本原则与设计理念CAPC: （consistency）强一致性A: （Availability）可用性P: （Partition Tolerance）分区容忍性
+ACIDA:(Atomicity)原子性C:(Consitency)一致性I:(Isolation)事物独立性D:(Durability)持久性">
+<meta property="og:image" content="http://pengyong.github.io/img/merkle-Hash_Tree.png">
+<meta property="og:updated_time" content="2015-10-07T10:31:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<大数据日知录>读书笔记">
+<meta name="twitter:description" content="数据复制与一致性基本原则与设计理念CAPC: （consistency）强一致性A: （Availability）可用性P: （Partition Tolerance）分区容忍性
+ACIDA:(Atomicity)原子性C:(Consitency)一致性I:(Isolation)事物独立性D:(Durability)持久性">
+
+    
+    <link rel="alternative" href="/atom.xml" title="PengYong&#39;s home" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="PengYong&#39;s home" title="PengYong&#39;s home"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="PengYong&#39;s home">PengYong&#39;s home</a></h1>
+				<h2 class="blog-motto">认知世界，认知社会，认知自己</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:pengyong.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/07/07/bigdata-notes/" title="&lt;大数据日知录&gt;读书笔记" itemprop="url">&lt;大数据日知录&gt;读书笔记</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Peng Yong" target="_blank" itemprop="author">Peng Yong</a>
+		
+  <p class="article-time">
+    <time datetime="2015-07-07T10:23:36.000Z" itemprop="datePublished"> 发表于 2015-07-07</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#数据复制与一致性"><span class="toc-number">1.</span> <span class="toc-text">数据复制与一致性</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#基本原则与设计理念"><span class="toc-number">1.1.</span> <span class="toc-text">基本原则与设计理念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CAP"><span class="toc-number">1.1.1.</span> <span class="toc-text">CAP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ACID"><span class="toc-number">1.1.2.</span> <span class="toc-text">ACID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#BASE"><span class="toc-number">1.1.3.</span> <span class="toc-text">BASE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#幂等性(Idempotent)"><span class="toc-number">1.1.4.</span> <span class="toc-text">幂等性(Idempotent)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一致性分类"><span class="toc-number">1.2.</span> <span class="toc-text">一致性分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#副本更新策略"><span class="toc-number">1.3.</span> <span class="toc-text">副本更新策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一致性协议"><span class="toc-number">1.4.</span> <span class="toc-text">一致性协议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#两阶段提交（Two-Phrase_Commit,_2PC）"><span class="toc-number">1.4.1.</span> <span class="toc-text">两阶段提交（Two-Phrase Commit, 2PC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NWR协议"><span class="toc-number">1.4.2.</span> <span class="toc-text">NWR协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Paxos协议"><span class="toc-number">1.4.3.</span> <span class="toc-text">Paxos协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Raft协议"><span class="toc-number">1.4.4.</span> <span class="toc-text">Raft协议</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#大数据常用的算法与数据结构"><span class="toc-number">2.</span> <span class="toc-text">大数据常用的算法与数据结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Bloom_Filter"><span class="toc-number">2.1.</span> <span class="toc-text">Bloom Filter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SkipList"><span class="toc-number">2.2.</span> <span class="toc-text">SkipList</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LSM树"><span class="toc-number">2.3.</span> <span class="toc-text">LSM树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Merkle哈希树"><span class="toc-number">2.4.</span> <span class="toc-text">Merkle哈希树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Snappy与LZSS算法"><span class="toc-number">2.5.</span> <span class="toc-text">Snappy与LZSS算法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#集群资源管理与调度"><span class="toc-number">3.</span> <span class="toc-text">集群资源管理与调度</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#资源管理抽象模型"><span class="toc-number">3.1.</span> <span class="toc-text">资源管理抽象模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#调度系统设计的基本问题"><span class="toc-number">3.2.</span> <span class="toc-text">调度系统设计的基本问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#资源管理与调度系统泛型"><span class="toc-number">3.3.</span> <span class="toc-text">资源管理与调度系统泛型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#资源调度策略"><span class="toc-number">3.4.</span> <span class="toc-text">资源调度策略</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分布式协调系统"><span class="toc-number">4.</span> <span class="toc-text">分布式协调系统</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Chubby"><span class="toc-number">4.1.</span> <span class="toc-text">Chubby</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#系统架构"><span class="toc-number">4.1.1.</span> <span class="toc-text">系统架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#会话与KeepAlive机制"><span class="toc-number">4.1.2.</span> <span class="toc-text">会话与KeepAlive机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#客户端缓存"><span class="toc-number">4.1.3.</span> <span class="toc-text">客户端缓存</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper"><span class="toc-number">4.2.</span> <span class="toc-text">Zookeeper</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#系统架构-1"><span class="toc-number">4.2.1.</span> <span class="toc-text">系统架构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分布式通信"><span class="toc-number">5.</span> <span class="toc-text">分布式通信</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#序列化与远程过程调用框架"><span class="toc-number">5.1.</span> <span class="toc-text">序列化与远程过程调用框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#消息队列"><span class="toc-number">5.2.</span> <span class="toc-text">消息队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#kafka"><span class="toc-number">5.2.1.</span> <span class="toc-text">kafka</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Gossip协议"><span class="toc-number">5.3.</span> <span class="toc-text">Gossip协议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#信息传播模型"><span class="toc-number">5.3.1.</span> <span class="toc-text">信息传播模型</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#大规模批处理系统"><span class="toc-number">6.</span> <span class="toc-text">大规模批处理系统</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#流式计算"><span class="toc-number">7.</span> <span class="toc-text">流式计算</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#交互式数据分析"><span class="toc-number">8.</span> <span class="toc-text">交互式数据分析</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="数据复制与一致性">数据复制与一致性</h1><h2 id="基本原则与设计理念">基本原则与设计理念</h2><h3 id="CAP">CAP</h3><p><strong>C</strong>: （consistency）强一致性<br><strong>A</strong>: （Availability）可用性<br><strong>P</strong>: （Partition Tolerance）分区容忍性</p>
+<h3 id="ACID">ACID</h3><p><strong>A</strong>:(Atomicity)原子性<br><strong>C</strong>:(Consitency)一致性<br><strong>I</strong>:(Isolation)事物独立性<br><strong>D</strong>:(Durability)持久性</p>
+<a id="more"></a>
+<h3 id="BASE">BASE</h3><p><strong>基本可用（Basically Available）</strong>：在绝大多数时间内系统处于可用状态<br><strong>软状态（Soft State）</strong>：数据状态不要求在任意时刻都完全保持同步，处于有状态（State）和无状态（Stateless）之间<br><strong>最终一致性（Eventual Consistency）</strong>：不要求数据时刻一致，但在一定时间窗口内到达一致</p>
+<h3 id="幂等性(Idempotent)">幂等性(Idempotent)</h3><p>调用方反复执行同一操作与只正确执行一次操作效果相同。</p>
+<h2 id="一致性分类">一致性分类</h2><p>主要包括强一致性，弱一致性，其中弱一致性包含最终一致性，单调读/写一致性等。</p>
+<h2 id="副本更新策略">副本更新策略</h2><p>主要分主从式更新和任意节点更新，但两种方式都有同步和异步更新副本类型。同步面临更大延时，异步则要面对可能存在的数据不一致问题。</p>
+<h2 id="一致性协议">一致性协议</h2><h3 id="两阶段提交（Two-Phrase_Commit,_2PC）">两阶段提交（Two-Phrase Commit, 2PC）</h3><p>保证在分布式事务中，要么所有参与进程都提交事务，要么都取消事务，保证原子性。</p>
+<ul>
+<li>角色：唯一的协调者（Coordinator），多个参与者（Participants）。</li>
+<li>Phrase-1：协调者向所有参与者发送VOTE_REQUEST消息，参与者收到后向协调者发送VOTE_COMMIT/VOTE_ABORT消息；</li>
+<li>Phrase-2：如果协调者收到的都是VOTE_COMMIT，则向所有参与者发送GLOBAL_COMMIT，否则发送GLOBAL_ABORT；参与者如果收到GLOBAL_COMMIT,则提交本地事务，如果收到GLOBAL_ABORT，则取消本地事务。</li>
+<li>两阶段提交风险：协调者等待参与者返回，参与者等待最终协调者表决结果两个阶段都会存在阻塞状态。</li>
+<li>缓解风险：超时判断机制和参与者互询机制。如果协调者处于等待超时状态，则认为失败，表决为GLOBAL_ABORT，如果参与者处于等待状态，则参与者可以询问协调者或其他参与者。</li>
+<li>三阶段提交：核心思想是将2PC的提交阶段细分为：预提交阶段和提交阶段。（使用较少，效率不高）</li>
+</ul>
+<h3 id="NWR协议">NWR协议</h3><p>N：在分布式存储系统中，有多少份备份数据<br>W：一次成功的更新操作要求至少有W份数据写入成功<br>R：一次成功的读取操作要求至少有R份数据成功读取<br>强一致性：R + W &gt; N</p>
+<h3 id="Paxos协议">Paxos协议</h3><p>TODO：</p>
+<h3 id="Raft协议">Raft协议</h3><p>TODO：</p>
+<h1 id="大数据常用的算法与数据结构">大数据常用的算法与数据结构</h1><h2 id="Bloom_Filter">Bloom Filter</h2><ol>
+<li>基本原理</li>
+</ol>
+<ul>
+<li>使用长度为m的位数组来存储集合信息，使用k个相互独立的哈希函数将数据映射到位数组空间。</li>
+<li>首先，将长度为m的位数组元素全部置为0，对于集合S中的某个成员a，分别使用k个哈希函数对其计算，如果Hi(a)=x(1&lt;=i&lt;=k,1&lt;=x&lt;=m)，则将位数组的第x位置为1，对于a来说，经过k个哈希函数计算后，可能会将位数组中的w(w&lt;=k)位置为1.</li>
+<li>当查询某个成员a是否在集合S中出现时，使用相同的k个哈希函数计算，如果其对应数组中的w位(w&lt;=k)都为1，则判断a属于集合S，只要w位中有任意一位为0，则判断a不属于S。s</li>
+</ul>
+<ol>
+<li>误判率</li>
+</ol>
+<ul>
+<li>误判：如果某个成员不在集合中，有可能BF会得出其在集合中的结论。</li>
+<li>漏判：BF不会发生漏判，即，如果某个成员确实属于集合，则BF一定能够给出正确判断。</li>
+<li>计算：（n-集合大小，m-位数组大小，k-哈希函数个数，p-误判率）<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">p = (1 - <span class="literal">exp</span>(-kn/<span class="keyword">m</span>))^k</span><br><span class="line">k = <span class="keyword">m</span>/<span class="keyword">n</span> * <span class="literal">ln</span>(2) <span class="comment">// 最优哈希函数个数</span></span><br><span class="line"><span class="keyword">m</span> = -<span class="keyword">n</span> * <span class="literal">ln</span>(p) / (ln2 *ln2) <span class="comment">// 已知n,p求m</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ol>
+<li>计数Bloom Filter（Counting Bloom Filter）</li>
+</ol>
+<ul>
+<li>基本的BF在使用时有个缺点：无法删除集合成员，只能增加成员并对其查询。</li>
+<li>改进思路：将基本信息单元由1位扩展为多位，扩展更多表达能力和信息承载能力。（一般采取3或4位）</li>
+<li>将集合成员加入位数组时，根据k个哈希函数计算，此时对应位置的信息单元由多位组成，所以将原先的数值加1即可。</li>
+<li>查询集合成员时，只要对应位置的信息单元都不为0即可认为其属于集合。</li>
+<li>删除成员时，只需要将对应位置的计算减1即可。</li>
+</ul>
+<ol>
+<li>应用<br>如Chrome浏览器使用BF进行恶意URL判断；爬虫使用BF对已经爬取过的URL判断。<br>BigTable将SSTable文件中包含的数据记录Key形成BF放进内存，这样就能极高提高查询速度。<br>google的流式计算MillWheel在保证数据记录“恰好送达一次”语义时对重复记录的检测也采用了类似BigTable的BF用法。</li>
+</ol>
+<h2 id="SkipList">SkipList</h2><ul>
+<li>SkipList依靠随机生成数以一定概率来保持数据的平衡分布。</li>
+<li>在最坏情况下SkipList的效率要低于平衡树，但是大多数情况下其效率仍然非常高，其插入，删除，查找的实际复杂度都是O(log(N))。</li>
+<li>在很多大数据系统中在维护有序列表高效读/写的场景下会采用SkipList，如LevelDB中的MemTable，Redis实现Sorted-Set的数据结构。</li>
+<li>具体实现暂略</li>
+</ul>
+<h2 id="LSM树">LSM树</h2><p>其他地方已有叙述，这里略</p>
+<h2 id="Merkle哈希树">Merkle哈希树</h2><p><img src="/img/merkle-Hash_Tree.png" alt="Merkle-HashTree"></p>
+<ul>
+<li>主要用于在海量数据下快速定位少量变化的数据内容（如损毁，篡改或正常修改）</li>
+<li>其子节点是每个数据项或者数据块对应的哈希值，中间节点则保存对其所有子节点哈希值再次进行哈希运算后的值，依次由下往上类推，直到根节点，其保存的Top Hash代表整棵树的哈希值。</li>
+<li>Merkle树常用于快速侦测部分数据正常或异常的变动。当某个底层数据发生变化时，其对应Merkle树的子节点哈希值会跟着变化，子节点的父节点哈希值也随之变化，直到根节点，其间经过的节点哈希值都发生变化，但是其他无关树节点哈希值并不发生改变。通过Merkle树，可以在O(log(n))时间内快速定位变化的数据内容。</li>
+</ul>
+<h2 id="Snappy与LZSS算法">Snappy与LZSS算法</h2><ul>
+<li>Snappy是Google开源出的高效数据压缩与解压缩算法库，其目标并非是最高的数据压缩率，而是在合理的压缩率基础上追求尽可能快的压缩和解压缩速度。</li>
+<li>词典编码的基本思路是：文本中的词用它在词典中表示位置的号码代替的无损数据压缩方法，分为静态词典方法和动态词典方法。</li>
+<li>采用静态词典编码技术时，编码器需要事先构造词典，解码器要事先知道词典。</li>
+<li>采用动态词典编码技术时，编码器将从被压缩的文本中自动导出词典，解码器解码时边解码边构造解码词典。</li>
+<li>深入介绍略</li>
+</ul>
+<h1 id="集群资源管理与调度">集群资源管理与调度</h1><h2 id="资源管理抽象模型">资源管理抽象模型</h2><ol>
+<li>资源管理与调度系统的主要目的是将集群中的各种资源通过一定策略分配给用户提交到系统里的各种任务。</li>
+</ol>
+<ul>
+<li>资源组织模型：将集群中当前可用的各种资源采用一定的方式组织起来，方便后续的资源分配；</li>
+<li>调度策略：以一定方式将资源分配给提交到系统的任务，常见的如FIFO,公平调度，能力调度，延迟调度等；</li>
+<li>任务组织模型：将多用户提交的多任务通过一定方式组织起来，方便后续资源分配。</li>
+</ul>
+<ol>
+<li>通用架构<br>集群中每台机器上会配置节点管理器，主要职责是不断地向资源收集器汇报目前本机资源使用状况，并负责容器的管理工作。当某个任务被分配到本节点执行时，节点管理器负责将其纳入某个容器执行并对该容器进行资源隔离，以避免不同容器内任务的相互干扰。</li>
+</ol>
+<h2 id="调度系统设计的基本问题">调度系统设计的基本问题</h2><ol>
+<li>异质性</li>
+</ol>
+<ul>
+<li>资源异质性：系统各节点所拥有的资源配置不同</li>
+<li>工作负载异质性：不同任务对资源需求差异可能很大</li>
+</ul>
+<ol>
+<li>数据局部性</li>
+</ol>
+<ul>
+<li>节点局部性：将计算分配到数据所在节点</li>
+<li>机架局部性：分配在同机架中的节点</li>
+<li>全局局部性：其他情况</li>
+</ul>
+<ol>
+<li>抢占式调度与非抢占式调度<br>在抢占式中，调度系统可以从比当前计算任务优先级低的其他任务中获取已分配资源，被抢占资源的计算任务则需出让资源停止计算。</li>
+<li>资源分配粒度</li>
+</ol>
+<ul>
+<li>大数据场景下的计算任务往往由两层结构构成：作业级（Job）和任务级（Task）。一个作业由多个并发的任务构成，任务之间的依赖关系往往形成有向无环图（DAG），典型的MR任务则是一种特殊的DAG关系</li>
+<li>全分或不分（All-or-Nothing）：将作业的所需的所有资源一次性分配完成。如MPI任务</li>
+<li>增量分配：对某个作业，只要分配部分资源就能启动一些任务开始运行，随着空闲资源的不断出现，可以逐步增量式分配给作业其他任务以维持作业不断的向后推进，如MR作业。</li>
+<li>资源储备策略：只有分配到一定量的资源作业才能启动，但是在未获得足够资源的时候，作业可以先持有目前已分配的资源，并等待其他作业释放资源，这样从调度系统不断获取新资源并进行储备和累积，直到分配到的资源量达到最低标准后开始运行。</li>
+</ul>
+<ol>
+<li>死锁与饿死<br>不合理调度存在死锁与饿死现象。</li>
+<li>资源隔离<br>目前对于资源隔离最常用的方法是Linux容器（Linux Container,LXC），如YARN，Mesos均采用。<br>LXC在资源管理方面依赖于Linux内核的cgroups子系统，cgroups子系统是Linux内核提供的一个基于进程组的资源管理框架，可以为特定的进程组限定可以使用的资源。</li>
+</ol>
+<h2 id="资源管理与调度系统泛型">资源管理与调度系统泛型</h2><ol>
+<li>集中式调度器<br>集中式调度器在整个系统中只运行一个全局的中央调度器实例。具体又可分为单路径调度和多路径调度。<br>单路径调度中，对所有计算任务均采用统一的调度策略来调度；<br>多路径调度中，可以支持多种调度策略，如针对批处理类型采用一种，对于在线服务类型采用另一种。</li>
+<li>两级调度器（Mesos,YAR）<br>两级调度器将整个系统的调度工作分为两个级别：中央调度器和框架调度器。<br>中央调度器可以看到集群中所有机器的可用资源并管理其状态，它可以按照一定策略将集群中的所有资源分配给各个计算框架，中央调度器级别的资源调度是一种粗粒度的调度方式，各个计算框架在接收到所需资源后，可以根据自身计算任务的特性，使用自身的调度策略来进一步细粒度分配从中央调度器获得的各种资源。在这两级架构中，只有中央调度器能够观察到所有集群资源的状态，而每个框架并无全局资源概念，只能看到由中央调度器分配给自己的资源。</li>
+<li>状态共享调度器（Google-Omega）<br>状态共享调度器中，每个计算框架可以看到整个集群中的所有资源，并采用相互竞争的方式去获取自己所需的资源，根据自身特性采取不同的具体资源调度策略，同时系统采用了乐观并发控制手段解决不同框架在资源竞争过程中出现的额需求冲突。</li>
+</ol>
+<h2 id="资源调度策略">资源调度策略</h2><ol>
+<li>FIFO调度策略</li>
+<li>公平调度策略<br>首先，根据每个资源池的最小资源保障量，将系统中的部分资源分配给各个资源池；<br>其次，根据资源池的指定优先级将剩余资源按照比例分配给各个资源池；<br>最后，在各个资源池中，按照作业优先级或者根据公平策略将资源分配给各个作业。</li>
+<li>能力调度<br>适合多用户场景，其更强调资源在用户之间而非作业之间的公平性。<br>它将用户和任务组织成多个队列，每个队列可以设定资源最低保障和使用上限，当一个队列的资源有剩余时，可以将剩余资源暂时分享给其他队列。调度器在调度时，优先将资源分配给资源使用率最低的队列（即队列已使用资源量占分配给队列的资源量比例最小的队列）；在队列内部，则按照作业优先级的先后顺序遵循FIFO策略进行调度。</li>
+<li>延迟调度策略<br>对于当前被调度到要分配资源的任务i，如果当前资源不满足数据局部性，那么可以暂时放弃分配公平性，任务i不接受当前资源，而是等待后续的资源分配；当前资源可以跳过任务i分配给其他待调度的任务，如果任务i在被跳过k次后仍然等不到满足局部性的资源，则放弃数据局部性，被迫接受当前资源来启动任务执行。</li>
+<li>主资源公平调度策略（DRF）<br>是最大最小公平算法的一个具体体现。<br>最大最小公平算法：最大化目前分配到最少资源量的用户或者任务的资源量。<br>对于每个用户，DRF计算分配给这个用户的所有资源的各自分享量（Share），而一个用户的各个资源分享量中的最大值被称作“主分享量”（Dominant Share），“主分享量”对应的资源被称为这个用户的“主资源”（Dominant Resource）。不同用户可能拥有不同的“主资源”，比如一个用户是运行计算密集型任务，那么他的“主资源”是CPU；而另外一个用户运行IO密集型计算，则其“主资源”为磁盘带宽。DRF旨在使得不同用户的各自“主分享量”最大化得保持平衡。</li>
+</ol>
+<h1 id="分布式协调系统">分布式协调系统</h1><p>应用：</p>
+<ul>
+<li>选主</li>
+<li>探测系统中新增节点</li>
+<li>分布式锁</li>
+<li>多节点间任务同步</li>
+<li>节点存活判断</li>
+<li>构建生产者消费者消息队列</li>
+</ul>
+<h2 id="Chubby">Chubby</h2><p>Chubby的设计哲学是强调协调系统的可靠性与高可用性及语义易于理解，而不追求处理读/写请求的高吞吐量及在协调系统内存储大量数据。</p>
+<h3 id="系统架构">系统架构</h3><p>TODO:架构图<br>客户端通过嵌入的库程序，利用RPC通信来和服务器进行交互，对Chubby的读/写请求都由“主控服务器”来负责。主控服务器遇到数据更新请求后，会更改在内存中维护的管理数据，通过改造的Paxos协议通知其他备份服务器对相应的数据进行更新操作并保证在多副本环境下的数据一致性；当多数备份服务器确认更新完成后，主控服务器可以认为本次更新操作正确完成。其他所有备份服务器只是同步管理数据到本地，保持数据和主控服务器完全一致；当备份机器接收到读/写请求时，会通过告知客户端主控服务器地址的方式将请求转发给主控服务器。</p>
+<h3 id="会话与KeepAlive机制">会话与KeepAlive机制</h3><p>Chubby的会话机制工作如下：客户端向主控服务器发出KeepAlive消息（一个RPC调用），服务器在接收到KeepAlive消息后，阻塞这个RPC调用，直到客户端原先的租约接近过期为止。此时，服务器解除RPC阻塞，KeepAlive调用返回，同时服务器通知客户端一个新的租约；客户端在接受到返回信息后立即再次向服务器发出KeepAlive消息，如此循环往复，就形成了靠KeepAlive消息，客户端不断拥有新租约来延续两者会话的机制。</p>
+<h3 id="客户端缓存">客户端缓存</h3><p>为了减少客户端和服务器之间的通信量，Chubby允许客户端在本地缓冲部分服务器数据，而由Chubby来保证缓存数据和服务器端数据完全一致。在很多情况下，客户端所需数据从本地缓存即可读出，这样大大减轻了客户端对服务器的通信压力。<br>为了保持数据一致性，主控服务器维护一个缓存表，记录了哪个客户端缓存了什么数据信息，当主控服务器接收到某项数据的修改请求时，首先阻塞这个修改数据请求，并查询该缓存表，通知所有缓存该数据的客户端该数据从此无效；客户端在接收到通知后向服务器确认收到改消息，当主控服务器接收到所有相关客户端的确认信息后继续执行数据修改请求操作。<br>处于同错考虑，每个Chubby单元的主控服务器每隔几个小时将自己的内存数据进行快照操作并将快照保存到另一个数据中心的GFS中，之所以要放到另一个数据中心，是因为本数据中心的GFS节点依赖这个Chubby单元选主，这样可以避免循环依赖的问题。</p>
+<h2 id="Zookeeper">Zookeeper</h2><h3 id="系统架构-1">系统架构</h3><p>TODO:架构图<br>客户端可以通过TCP协议连接任意一台服务器，如果客户端是读操作请求，则任意一个服务器都可以直接响应请求；如果是更新数据操作，则只能由主控服务器来协调更新操作；如果客户端连接的是从属服务器，则从属服务器会将更新数据请求转发到主控服务器，由其完成更新操作。<br>潜在问题：客户端可能会读到过期数据，因为即使主控服务器已经更新了某个内存数据，但是ZAB协议还未能将其广播到从属服务器，为了解决这一问题，在zk的接口API函数中提供了Sync操作，应用可以根据需要在读取数据前调用该操作，其含义是：接收到Sync命令的从属服务器从主控服务器同步状态信息，保证两者完全一致。<br>容错：zk通过重放日志（Replay log）和模糊快照（Fuzzy Snapshot）来对服务器故障进行容错。<br>重放日志在将更新操作体现在内存数据之前先写入外村日志中避免数据丢失；而模糊快照是指在周期性对对内存数据做数据快照时，并不对内存数据加锁，而是用深度遍历的方式将内存中的树形结构转入外存快照数据中，这样就存在着在做数据快照时内存数据可能发生变化而本次快照数据并未体现出这一变化的问题。因zk可以保证数据更新操作是幂等的，即只要保证执行顺序不变，即使多次执行同一操作对最终结果也没有影响，所以即使模糊快照没有体现最新的内存数据状态，但是在服务器故障恢复时，加载进模式快照并根据重放日志重新执行一遍操作，系统就会恢复到最新状态。</p>
+<h1 id="分布式通信">分布式通信</h1><h2 id="序列化与远程过程调用框架">序列化与远程过程调用框架</h2><p>RPC允许程序调用位于网络中其他机器上的进程，当机器A上的进程调用机器B上的进程时，A上的调用进程被挂起，而B上的被调用进程开始执行，调用方可以通过参数将信息传递给被调用方，然后通过B上的进程返回的结果得到所需的信息。</p>
+<h2 id="消息队列">消息队列</h2><p>常见消息队列中间件：ActiveMQ(6k TPS),ZeroMQ(10w TPS),RabbitMQ(1w TPS),Kafka(4w TPS)<br>一般这些消息中间件都支持两种模式的队列：消息队列模式及Pub-Sub模式。消息队列模式即消息生产者将消息存入队列，消息消费者从队列消费信息；Pub-Sub模式则是消息生产者将消息发布到指定的队列中，而消息消费者订阅指定主题的队列消息，当订阅的主题有新消息时，消息消费者可以通过拉去Pull或者消息中间件通过推送Push的方式将消息消费掉。另外，为了能够保证送达消息，一般这些消息中间件也支持消息持久化存储（ZeroMQ除外）。</p>
+<h3 id="kafka">kafka</h3><p>其他地方有详述，这里记录一些关键点。<br>kafka使用zookeeper保存的管理信息和实现的功能包括：</p>
+<ol>
+<li>侦测代理服务器和消息消费者的动态加入和删除</li>
+<li>当动态加入或者删除代理服务器以及消息消费者后对消息系统进行负载均衡</li>
+<li>维护消费者和消息topic以及数据分片的相互关系，并保存消费者当前读取消息的Offset</li>
+<li>数据副本管理信息。</li>
+</ol>
+<p><strong>ISR副本管理机制，ISR(In-Sync Replicas）</strong><br>kafka的副本管理单位不是Topic消息队列，而是Topic的数据分片Partition。在配置文件里可以指定数据分片的副本个数，在多个副本里，其中一个作为主副本，其他作为次级副本。所有针对这个数据分片的消息读/写请求都由主副本负责响应，次级副本只是以主副本数据消费者的方式从主副本同步数据；当主副本发生故障时，kafka将其中某个次级副本提升为主副本，以此来达到整个消息系统的高可用性。<br>ISR的运行机制：将所有次级副本数据分到两个集合，其中一个被称为ISR集合，这个集合备份数据的特点是即时和主副本数据保持一致，而另外一个集合的备份数据允许其消息队列落后于主副本的数据。在做主备切换时，只允许从ISR集合中选择候选主副本，这样即可保证切换后新的主副本数据状态和老的主副本一致。在数据分片进行消息写入时，只有ISR集合内所有备份都写成功才能任务这次写入操作成功。<br>如果设定ISR集合大小为f+1，那么可以最多允许f个副本故障，而对于多数投票机制来说，则需要2f+1个副本才能达到相同的容错性。</p>
+<h2 id="Gossip协议">Gossip协议</h2><p>Gossip协议可以用来进行故障检测，集群成员管理或者副本数据修复等。</p>
+<h3 id="信息传播模型">信息传播模型</h3><p>Gossip协议用来尽快地将本地更新数据通知到网络中的所有其他节点。更新模型主要有3种：全部通知模型，反熵模型和散步谣言模型，其中反熵模型是最常用的。</p>
+<ol>
+<li>全部通知模型<br>当某个节点有更新消息，则立即通知所有其他节点；其他节点在接收到通知后，判断接收到的消息是否比本地消息要新（可以通过时间戳或者版本信息来判断），如果是的话则更新本地数据，否则不采取任何行为。缺点：容错性不好。比如信息发送者在通知过程中发生故障或者消息在通信过程中丢失，都会造成集群中有些节点无法获知最新数据更新内容。</li>
+<li>反熵模型<br>“熵”是信息论里用来衡量系统混乱无序程度的指标，熵越大说明系统越无序，包含的有用信息含量越少；而反熵则反其道而行，因为更新的信息经过一定轮数的传播后，集群内所有节点都会获得全局最新信息，所以系统变得越来越有序。<br>在反熵模型中，节点P随机选择集群中另外一个节点Q，然后与Q交换更新信息;Q如果信息有更新，则类似P一样传播给任意其他节点。</li>
+<li>散步谣言模型<br>相比反熵模型，增加了传播停止判断。如果节点P更新数据，则随机选择节点Q交换信息，如果节点Q已经被其他节点通过更新了，那么节点P则增加其不再主动通知其他节点的概率，到了一定程度，比如不再通知其他节点的概率达到一定值，则节点P停止通知行为。可以理解为：被拒绝的次数越多越沉默，到后来完全死心不再表白。缺点是不能保证所有节点都能最终获得更新。</li>
+</ol>
+<h1 id="大规模批处理系统">大规模批处理系统</h1><p>TODO:</p>
+<h1 id="流式计算">流式计算</h1><p>TODO:</p>
+<h1 id="交互式数据分析">交互式数据分析</h1><p>TODO:</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/大数据/">大数据</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/bigdata/">bigdata</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://pengyong.github.io/2015/07/07/bigdata-notes/" data-title="&lt;大数据日知录&gt;读书笔记 | PengYong&#39;s home" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+
+<div class="next">
+<a href="/2015/07/07/distribute-storage/"  title="&lt;分布式存储&gt;读书笔记-基础篇">
+ <strong>下一篇：</strong><br/> 
+ <span>&lt;分布式存储&gt;读书笔记-基础篇
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/07/07/bigdata-notes/" data-title="<大数据日知录>读书笔记" data-url="http://pengyong.github.io/2015/07/07/bigdata-notes/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#数据复制与一致性"><span class="toc-number">1.</span> <span class="toc-text">数据复制与一致性</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#基本原则与设计理念"><span class="toc-number">1.1.</span> <span class="toc-text">基本原则与设计理念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CAP"><span class="toc-number">1.1.1.</span> <span class="toc-text">CAP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ACID"><span class="toc-number">1.1.2.</span> <span class="toc-text">ACID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#BASE"><span class="toc-number">1.1.3.</span> <span class="toc-text">BASE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#幂等性(Idempotent)"><span class="toc-number">1.1.4.</span> <span class="toc-text">幂等性(Idempotent)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一致性分类"><span class="toc-number">1.2.</span> <span class="toc-text">一致性分类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#副本更新策略"><span class="toc-number">1.3.</span> <span class="toc-text">副本更新策略</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一致性协议"><span class="toc-number">1.4.</span> <span class="toc-text">一致性协议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#两阶段提交（Two-Phrase_Commit,_2PC）"><span class="toc-number">1.4.1.</span> <span class="toc-text">两阶段提交（Two-Phrase Commit, 2PC）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#NWR协议"><span class="toc-number">1.4.2.</span> <span class="toc-text">NWR协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Paxos协议"><span class="toc-number">1.4.3.</span> <span class="toc-text">Paxos协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Raft协议"><span class="toc-number">1.4.4.</span> <span class="toc-text">Raft协议</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#大数据常用的算法与数据结构"><span class="toc-number">2.</span> <span class="toc-text">大数据常用的算法与数据结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Bloom_Filter"><span class="toc-number">2.1.</span> <span class="toc-text">Bloom Filter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SkipList"><span class="toc-number">2.2.</span> <span class="toc-text">SkipList</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#LSM树"><span class="toc-number">2.3.</span> <span class="toc-text">LSM树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Merkle哈希树"><span class="toc-number">2.4.</span> <span class="toc-text">Merkle哈希树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Snappy与LZSS算法"><span class="toc-number">2.5.</span> <span class="toc-text">Snappy与LZSS算法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#集群资源管理与调度"><span class="toc-number">3.</span> <span class="toc-text">集群资源管理与调度</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#资源管理抽象模型"><span class="toc-number">3.1.</span> <span class="toc-text">资源管理抽象模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#调度系统设计的基本问题"><span class="toc-number">3.2.</span> <span class="toc-text">调度系统设计的基本问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#资源管理与调度系统泛型"><span class="toc-number">3.3.</span> <span class="toc-text">资源管理与调度系统泛型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#资源调度策略"><span class="toc-number">3.4.</span> <span class="toc-text">资源调度策略</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分布式协调系统"><span class="toc-number">4.</span> <span class="toc-text">分布式协调系统</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Chubby"><span class="toc-number">4.1.</span> <span class="toc-text">Chubby</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#系统架构"><span class="toc-number">4.1.1.</span> <span class="toc-text">系统架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#会话与KeepAlive机制"><span class="toc-number">4.1.2.</span> <span class="toc-text">会话与KeepAlive机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#客户端缓存"><span class="toc-number">4.1.3.</span> <span class="toc-text">客户端缓存</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Zookeeper"><span class="toc-number">4.2.</span> <span class="toc-text">Zookeeper</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#系统架构-1"><span class="toc-number">4.2.1.</span> <span class="toc-text">系统架构</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分布式通信"><span class="toc-number">5.</span> <span class="toc-text">分布式通信</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#序列化与远程过程调用框架"><span class="toc-number">5.1.</span> <span class="toc-text">序列化与远程过程调用框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#消息队列"><span class="toc-number">5.2.</span> <span class="toc-text">消息队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#kafka"><span class="toc-number">5.2.1.</span> <span class="toc-text">kafka</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Gossip协议"><span class="toc-number">5.3.</span> <span class="toc-text">Gossip协议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#信息传播模型"><span class="toc-number">5.3.1.</span> <span class="toc-text">信息传播模型</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#大规模批处理系统"><span class="toc-number">6.</span> <span class="toc-text">大规模批处理系统</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#流式计算"><span class="toc-number">7.</span> <span class="toc-text">流式计算</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#交互式数据分析"><span class="toc-number">8.</span> <span class="toc-text">交互式数据分析</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github 名片</p>
+<div class="github-card" data-github="pengyong" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/大数据/" title="大数据">大数据<sup>4</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/bigdata/" title="bigdata">bigdata<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/kafka/" title="kafka">kafka<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/flume/" title="flume">flume<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/distributed-system/" title="distributed system">distributed system<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://yanke.tk" target="_blank" title="闫珂的博客">闫珂的博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m PengYong <br/>
+			love for love</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1621046884" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/pengyong" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:yierhe@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Peng Yong">Peng Yong</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"pengyongatgithub"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F6fa3959773e3380b8a41d2dc1e867499' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

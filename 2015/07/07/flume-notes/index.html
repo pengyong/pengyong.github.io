@@ -1,0 +1,546 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Apache flume笔记总结 | PengYong&#39;s home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Peng Yong">
+    
+
+    
+    <meta name="description" content="flume介绍flume最新release版本是1.6.0官方介绍：Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible ar">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache flume笔记总结">
+<meta property="og:url" content="http://pengyong.github.io/2015/07/07/flume-notes/index.html">
+<meta property="og:site_name" content="PengYong's home">
+<meta property="og:description" content="flume介绍flume最新release版本是1.6.0官方介绍：Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible ar">
+<meta property="og:image" content="http://pengyong.github.io/img/UserGuide_image00.png">
+<meta property="og:image" content="http://pengyong.github.io/img/DevGuide_image01.png">
+<meta property="og:image" content="http://pengyong.github.io/img/UserGuide_image02.png">
+<meta property="og:image" content="http://pengyong.github.io/img/UserGuide_image01.png">
+<meta property="og:updated_time" content="2015-10-07T10:16:51.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache flume笔记总结">
+<meta name="twitter:description" content="flume介绍flume最新release版本是1.6.0官方介绍：Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible ar">
+
+    
+    <link rel="alternative" href="/atom.xml" title="PengYong&#39;s home" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="PengYong&#39;s home" title="PengYong&#39;s home"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="PengYong&#39;s home">PengYong&#39;s home</a></h1>
+				<h2 class="blog-motto">认知世界，认知社会，认知自己</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:pengyong.github.io">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/07/07/flume-notes/" title="Apache flume笔记总结" itemprop="url">Apache flume笔记总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Peng Yong" target="_blank" itemprop="author">Peng Yong</a>
+		
+  <p class="article-time">
+    <time datetime="2015-07-07T09:46:40.000Z" itemprop="datePublished"> 发表于 2015-07-07</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#flume介绍"><span class="toc-number">1.</span> <span class="toc-text">flume介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume基本组件架构"><span class="toc-number">2.</span> <span class="toc-text">flume基本组件架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#可靠性"><span class="toc-number">3.</span> <span class="toc-text">可靠性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#事务"><span class="toc-number">4.</span> <span class="toc-text">事务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#可恢复性"><span class="toc-number">5.</span> <span class="toc-text">可恢复性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume支持级联模式"><span class="toc-number">6.</span> <span class="toc-text">flume支持级联模式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多路技术"><span class="toc-number">7.</span> <span class="toc-text">多路技术</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分发数据流（Fan_out_flow）"><span class="toc-number">8.</span> <span class="toc-text">分发数据流（Fan out flow）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多种source"><span class="toc-number">9.</span> <span class="toc-text">多种source</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多种sink"><span class="toc-number">10.</span> <span class="toc-text">多种sink</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多种channel"><span class="toc-number">11.</span> <span class="toc-text">多种channel</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume拦截器（flume_interceptors）"><span class="toc-number">12.</span> <span class="toc-text">flume拦截器（flume interceptors）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume轮询配置"><span class="toc-number">13.</span> <span class="toc-text">flume轮询配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#设计拓扑结构的一些考虑点"><span class="toc-number">14.</span> <span class="toc-text">设计拓扑结构的一些考虑点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#一家之言"><span class="toc-number">15.</span> <span class="toc-text">一家之言</span></a></li></ol>
+		
+		</div>
+		
+		<h1 id="flume介绍">flume介绍</h1><p>flume最新release版本是1.6.0<br>官方介绍：<br>Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible architecture based on streaming data flows. It is robust and fault tolerant with tunable reliability mechanisms and many failover and recovery mechanisms. It uses a simple extensible data model that allows for online analytic application.</p>
+<a id="more"></a>
+<h1 id="flume基本组件架构">flume基本组件架构</h1><p><img src="/img/UserGuide_image00.png" alt="Flume-basic"></p>
+<ul>
+<li><strong>flume agent:</strong> 由若干source,channel,sink组成，其中source接收来自外源（external source）发送来的数据，然后将数据写入一个或多个channel，channel被动的存储接收的数据直到数据被sink消费。一个agent内的source和sink是借助于channle异步运行的（The source and sink within the given agent run asynchronously with the events staged in the channel.）</li>
+<li><strong>Event:</strong> event在flume里被定义为一个数据流的基本单位，event里包含可设置各种属性的header。</li>
+<li><strong>Client SDK:</strong> 提供了rpc client接口，比较特殊的包括Failover client（一组agents组成一个faileover group），以及LoadBalancing RPC client（一组agents组成load-balancing group，负载均衡策略可以是随机，R-R，或者自己定义）</li>
+</ul>
+<h1 id="可靠性">可靠性</h1><ul>
+<li>数据（events）只有在被下一个agent中的channel存储或者发生到终端（terminal repository）后才会被从channel中删除。<br>（The Sink removes an Event from the Channel only after the Event is stored into the Channel of the next agent or stored in the terminal repository. This is how the single-hop message delivery semantics in Flume provide end-to-end reliability of the flow.）</li>
+<li>flume利用channel提供的事务性来保证数据分发的可靠性，这样可以确保数据流中端到端的数据可靠性。<br>（The Sources and Sinks encapsulate the storage/retrieval of the Events in a Transaction provided by the Channel. ）</li>
+</ul>
+<h1 id="事务">事务</h1><p><img src="/img/DevGuide_image01.png" alt="flume-transaction"><br>如上图所示。</p>
+<h1 id="可恢复性">可恢复性</h1><ul>
+<li>数据被暂存在channel中，channel负责故障恢复。</li>
+<li>channle支持持久化（本地文件）和非持久化（内存）两种模式。</li>
+</ul>
+<h1 id="flume支持级联模式">flume支持级联模式</h1><p>只需要配置上对应agent的source和sink即可。<br><img src="/img/UserGuide_image02.png" alt="flume-more-hop"></p>
+<h1 id="多路技术">多路技术</h1><p>flume支持多路分发，支持一个源发布到多个端<br><img src="/img/UserGuide_image01.png" alt="flume-multiplexing"><br>注意，一个source实例可以配置多个channel，但是一个sink只能配置指定到一个channel</p>
+<h1 id="分发数据流（Fan_out_flow）">分发数据流（Fan out flow）</h1><ul>
+<li>前面说道，flume支持从一个source到多个channel的多路分发技术，具体实现有两种方法，一个是复制（replicating），一个是多路技术（multiplexing）。</li>
+<li>replicating模式中，数据会被发送到配置指定的所有channels。</li>
+<li>multiplexing模式中，数据可能只会被发送到符合规则的channels中，可能是一个，多个或所有的。</li>
+<li>两种模式可以通过指定selector.type来选择，默认为replicating。<br>如果指定的是multiplexing模式，则需要进一步指定规则，主要是通过header内容判断，然后分发到不同channel。<br>如：<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">agent_foo<span class="class">.sources</span><span class="class">.avro-AppSrv-source1</span><span class="class">.selector</span><span class="class">.type</span> = multiplexing</span><br><span class="line">agent_foo<span class="class">.sources</span><span class="class">.avro-AppSrv-source1</span><span class="class">.selector</span><span class="class">.header</span> = State</span><br><span class="line">agent_foo<span class="class">.sources</span><span class="class">.avro-AppSrv-source1</span><span class="class">.selector</span><span class="class">.mapping</span><span class="class">.CA</span> = mem-channel-<span class="number">1</span></span><br><span class="line">agent_foo<span class="class">.sources</span><span class="class">.avro-AppSrv-source1</span><span class="class">.selector</span><span class="class">.mapping</span><span class="class">.AZ</span> = file-channel-<span class="number">2</span></span><br><span class="line">agent_foo<span class="class">.sources</span><span class="class">.avro-AppSrv-source1</span><span class="class">.selector</span><span class="class">.mapping</span><span class="class">.NY</span> = mem-channel-<span class="number">1</span> file-channel-<span class="number">2</span></span><br><span class="line">agent_foo<span class="class">.sources</span><span class="class">.avro-AppSrv-source1</span><span class="class">.selector</span><span class="class">.default</span> = mem-channel-<span class="number">1</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>则selector会检查header中的state值，CA会发送到mem-channel-1，以此类推。</p>
+<h1 id="多种source">多种source</h1><p>flume支持多种source，如Avro source, thrift source,exec source（命令行，如tail -f filelog），kafka source等等。<br>每个source实例都会有自己的生命周期，包括start(),stop(),process().</p>
+<h1 id="多种sink">多种sink</h1><p>flume支持多种sink，如hdfs sink,hive sink,logger sink, avro sink,thrift sink等等。<br>每个sink实例都会有自己的生命周期，包括start(),stop(),process().</p>
+<h1 id="多种channel">多种channel</h1><p>flume支持多种channel，如memory channel,file channel,kafka channel</p>
+<h1 id="flume拦截器（flume_interceptors）">flume拦截器（flume interceptors）</h1><p>fulme具有修改或者丢弃接收到的数据（events）的能力。即对接收到的数据按照一定的配置规则处理。可以是增加字段，修改替换，过滤等。</p>
+<h1 id="flume轮询配置">flume轮询配置</h1><p>flume agent会不断检查看配置文件是否修改更新，如果更新则会重新加载。</p>
+<h1 id="设计拓扑结构的一些考虑点">设计拓扑结构的一些考虑点</h1><ol>
+<li>flume适合将文本log数据写到HDFS。但可传输的数据可以多种多样，对flume来讲，会把接收的数据都看作是二进制数据。此外，你的拓扑结构可以修改，但不适合经常性的修改，但不适合每天都要修改（because reconfiguration takes some thought and overhead.）。</li>
+<li>数据流的可靠性。channel类型选择，持久化还是内存型的，以及当channel满时情况，因为有可能造成数据丢失。以及是否使用冗余拓扑。（Whether you use redundant topologies.）</li>
+<li>拓扑结构设计。如果源比较多的话是否使用聚合功能。</li>
+<li>估算数据量，吞吐能力。</li>
+</ol>
+<h1 id="一家之言">一家之言</h1><p><strong>优点：</strong></p>
+<ul>
+<li>系统架构设计的非常清晰，组件之间耦合度非常低，可以根据需求自由组合；</li>
+<li>同时提供了多种source和sink，扩展性很强。</li>
+</ul>
+<p><strong>不足：</strong></p>
+<ul>
+<li>配置不够灵活，尤其是需要动态更新一条数据流时；</li>
+<li>虽然提供了channel的事务，但是整个系统的异常处理能力还是比较弱的，不适合对数据质量要求较高的场景；</li>
+<li>用户接入的代价也比较高，以及运维是个挑战。</li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/大数据/">大数据</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/bigdata/">bigdata</a><a href="/tags/flume/">flume</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://pengyong.github.io/2015/07/07/flume-notes/" data-title="Apache flume笔记总结 | PengYong&#39;s home" data-tsina="null" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/07/07/distribute-storage/" title="&lt;分布式存储&gt;读书笔记-基础篇">
+  <strong>上一篇：</strong><br/>
+  <span>
+  &lt;分布式存储&gt;读书笔记-基础篇</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/07/05/kafka-notes/"  title="LinkIn kafka笔记总结">
+ <strong>下一篇：</strong><br/> 
+ <span>LinkIn kafka笔记总结
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section id="comments" class="comment">
+	<div class="ds-thread" data-thread-key="2015/07/07/flume-notes/" data-title="Apache flume笔记总结" data-url="http://pengyong.github.io/2015/07/07/flume-notes/"></div>
+</section>
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#flume介绍"><span class="toc-number">1.</span> <span class="toc-text">flume介绍</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume基本组件架构"><span class="toc-number">2.</span> <span class="toc-text">flume基本组件架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#可靠性"><span class="toc-number">3.</span> <span class="toc-text">可靠性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#事务"><span class="toc-number">4.</span> <span class="toc-text">事务</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#可恢复性"><span class="toc-number">5.</span> <span class="toc-text">可恢复性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume支持级联模式"><span class="toc-number">6.</span> <span class="toc-text">flume支持级联模式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多路技术"><span class="toc-number">7.</span> <span class="toc-text">多路技术</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#分发数据流（Fan_out_flow）"><span class="toc-number">8.</span> <span class="toc-text">分发数据流（Fan out flow）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多种source"><span class="toc-number">9.</span> <span class="toc-text">多种source</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多种sink"><span class="toc-number">10.</span> <span class="toc-text">多种sink</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#多种channel"><span class="toc-number">11.</span> <span class="toc-text">多种channel</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume拦截器（flume_interceptors）"><span class="toc-number">12.</span> <span class="toc-text">flume拦截器（flume interceptors）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#flume轮询配置"><span class="toc-number">13.</span> <span class="toc-text">flume轮询配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#设计拓扑结构的一些考虑点"><span class="toc-number">14.</span> <span class="toc-text">设计拓扑结构的一些考虑点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#一家之言"><span class="toc-number">15.</span> <span class="toc-text">一家之言</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github 名片</p>
+<div class="github-card" data-github="pengyong" data-width="220" data-height="119" data-theme="medium">
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+  </div>
+
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/大数据/" title="大数据">大数据<sup>4</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/bigdata/" title="bigdata">bigdata<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/kafka/" title="kafka">kafka<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/flume/" title="flume">flume<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/distributed-system/" title="distributed system">distributed system<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="http://yanke.tk" target="_blank" title="闫珂的博客">闫珂的博客</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello, I&#39;m PengYong <br/>
+			love for love</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		<a href="http://weibo.com/1621046884" target="_blank" class="icon-weibo" title="微博"></a>
+		
+		
+		<a href="https://github.com/pengyong" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:yierhe@gmail.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2015 
+		
+		<a href="/about" target="_blank" title="Peng Yong">Peng Yong</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+        getSize();
+        if (myWidth >= 1024) {
+          c.click();
+        }
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"pengyongatgithub"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F6fa3959773e3380b8a41d2dc1e867499' type='text/javascript'%3E%3C/script%3E"));
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
